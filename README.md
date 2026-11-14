@@ -12,7 +12,6 @@ The package is not installed globally: the hook is added as a dependency in the 
 dependencies:
   apm:
     - git: xronos-i-am/outdated-skills
-      ref: v1.0.0
 ```
 
 ## What the hook reports

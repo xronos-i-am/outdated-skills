@@ -10,7 +10,6 @@
 dependencies:
   apm:
     - git: xronos-i-am/outdated-skills
-      ref: v1.0.0
 ```
 
 ## Что сообщает хук
