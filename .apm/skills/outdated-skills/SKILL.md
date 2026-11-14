@@ -1,6 +1,6 @@
 ---
 name: outdated-skills
-description: "Хук старта сессии: сообщает агенту об отставших зависимостях apm.yml проекта"
+description: "Session-start hook: tells the agent about outdated dependencies in the project's apm.yml"
 ---
 
 ## Термины

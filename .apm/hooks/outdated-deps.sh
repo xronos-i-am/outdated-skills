@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# Хук SessionStart: сообщает агенту зависимости apm.yml, у которых вышла версия новее записанной.
-# Только сообщает: apm.yml, apm.lock.yaml и установку не меняет, apm install не запускает.
-# Всё, что скрипт пишет в stdout, попадает в контекст сессии.
+# SessionStart hook: reports the apm.yml dependencies that have a newer version than the one recorded.
+# It only reports: apm.yml, apm.lock.yaml and the installation are not changed, apm install is not run.
+# Everything the script writes to stdout goes into the session context.
 
 skip() {
-  echo "outdated-skills: проверка отставания зависимостей не сделана — $1"
+  echo "outdated-skills: dependency check not done — $1"
   exit 0
 }
 
 [ -f apm.yml ] || exit 0
-[ -f apm.lock.yaml ] || skip "нет apm.lock.yaml, а apm outdated сверяет версии с ним."
-command -v apm >/dev/null 2>&1 || skip "в PATH нет apm."
+[ -f apm.lock.yaml ] || skip "no apm.lock.yaml, and apm outdated compares versions against it."
+command -v apm >/dev/null 2>&1 || skip "apm is not in PATH."
 
-# COLUMNS=250: без него apm режет имена в таблице по ширине терминала.
-# stderr отдельно: его строки не должны попасть в разбор таблицы
-errors=$(mktemp) || skip "не создан временный файл."
+# COLUMNS=250: without it apm truncates names in the table to the terminal width.
+# stderr goes to a separate file: its lines must not end up in the table parsing
+errors=$(mktemp) || skip "could not create a temporary file."
 trap 'rm -f "$errors"' EXIT
-table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated завершился с ошибкой: $(head -n 5 "$errors")"
+table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated failed: $(head -n 5 "$errors")"
 
-# Статус — последняя колонка таблицы; за ним допустимы пробелы и рамка
+# The status is the last column of the table; spaces and the border may follow it
 rows=$(grep -E 'outdated[[:space:]│┃|]*$' <<<"$table")
 [ -n "$rows" ] || exit 0
 
-echo "outdated-skills: у зависимостей apm.yml вышла версия новее записанной (apm outdated):"
+echo "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):"
 echo "$rows"

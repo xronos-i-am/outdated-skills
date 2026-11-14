@@ -1,10 +1,12 @@
 # outdated-skills
 
-Хук старта сессии: сообщает агенту об отставших зависимостях `apm.yml` проекта
+Session-start hook that tells the agent about outdated dependencies in the project's `apm.yml`.
 
-## Установка
+Русская версия: [README.md.ru](README.md.ru)
 
-Глобально пакет не ставится: хук подключается зависимостью в `apm.yml` проекта, который он проверяет:
+## Installation
+
+The package is not installed globally: the hook is added as a dependency in the `apm.yml` of the project it checks:
 
 ```yaml
 dependencies:
@@ -13,20 +15,20 @@ dependencies:
       ref: v1.0.0
 ```
 
-## Что сообщает хук
+## What the hook reports
 
-Хук `SessionStart` запускает в каталоге сессии `COLUMNS=250 apm outdated` и передаёт агенту в контекст строки со статусом `outdated`: зависимости `apm.yml`, у которых вышла версия новее записанной.
+The `SessionStart` hook runs `COLUMNS=250 apm outdated` in the session directory and passes the rows with the `outdated` status to the agent's context: the `apm.yml` dependencies that have a newer version than the one recorded.
 
-- Хук только сообщает: `apm.yml`, `apm.lock.yaml` и установку он не меняет, `apm install` не запускает.
-- Без `apm.yml` хук молчит.
-- Без `apm.lock.yaml` сообщает, что проверка не сделана: `apm outdated` сверяет версии с lock-файлом.
-- Если `apm outdated` завершился с ошибкой или в PATH нет `apm`, хук сообщает, что проверка не сделана.
+- The hook only reports: it does not change `apm.yml`, `apm.lock.yaml` or the installation, and does not run `apm install`.
+- Without `apm.yml` the hook stays silent.
+- Without `apm.lock.yaml` it reports that the check was not done: `apm outdated` compares versions against the lock file.
+- If `apm outdated` fails or `apm` is not in PATH, the hook reports that the check was not done.
 
-### Доступ к gitlab
+### Access to gitlab
 
-`apm` проверяет `gitlab`-зависимости по `https`, даже если в `apm.yml` записан адрес `git@…`. Если git не может войти в gitlab по https, зависимость показана как `unknown`, а не как отставшая. Чтобы проверка работала, настройте для хоста вход по https:
+`apm` checks `gitlab` dependencies over `https`, even if `apm.yml` records a `git@…` address. If git cannot log in to gitlab over https, the dependency is shown as `unknown` rather than outdated. For the check to work, set up https login for the host:
 
 ```bash
-glab auth login --hostname <хост>
-git config --global credential.https://<хост>.helper '!glab auth git-credential'
+glab auth login --hostname <host>
+git config --global credential.https://<host>.helper '!glab auth git-credential'
 ```
