@@ -1,5 +1,5 @@
 name: outdated-skills
-version: 1.0.0
+version: 1.0.1
 description: "Хук старта сессии: сообщает агенту об отставших зависимостях apm.yml проекта"
 author: Sergei Malykh
 type: hybrid
