@@ -1,0 +1,7 @@
+.claude/
+# в worktree apm_modules — симлинк, а образец со слешем, который ждёт apm install, ловит только каталог
+apm_modules/
+apm_modules
+apm.lock.yaml
+# worktree задач /task
+.worktrees/
