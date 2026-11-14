@@ -2,7 +2,7 @@
 
 Session-start hook that tells the agent about outdated dependencies in the project's `apm.yml`.
 
-Русская версия: [README.md.ru](README.md.ru)
+Русская версия: [README.ru.md](README.ru.md)
 
 ## Installation
 
