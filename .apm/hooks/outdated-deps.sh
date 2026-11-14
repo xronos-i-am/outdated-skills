@@ -24,7 +24,7 @@ for_agent() {
 }
 
 skip() {
-  local notice="⚠ outdated-skills: dependency check not done — $1"
+  local notice="❗ outdated-skills: dependency check not done — $1"
   emit "$notice" "$(for_agent "$notice")"
   exit 0
 }
@@ -44,7 +44,7 @@ rows=$(grep -E '[|│┃][[:space:]]*outdated[[:space:]]*[|│┃]' <<<"$table")
 [ -n "$rows" ] || exit 0
 
 # Table row "| name | current | latest | outdated | source |" -> "  name: current → latest"
-notice="⚠ outdated-skills: newer versions are available
+notice="❗ outdated-skills: newer versions are available
 $(awk -F'|' '{ for (i = 2; i <= 4; i++) gsub(/^ +| +$/, "", $i); printf "  %s: %s → %s\n", $2, $3, $4 }' <<<"$rows")"
 
 emit "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):
