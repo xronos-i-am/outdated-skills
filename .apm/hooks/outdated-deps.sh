@@ -18,8 +18,8 @@ errors=$(mktemp) || skip "could not create a temporary file."
 trap 'rm -f "$errors"' EXIT
 table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated failed: $(head -n 5 "$errors")"
 
-# The status is the last column of the table; spaces and the border may follow it
-rows=$(grep -E 'outdated[[:space:]│┃|]*$' <<<"$table")
+# The status is a table cell that is exactly "outdated"; other columns, such as Source, may follow it
+rows=$(grep -E '[|│┃][[:space:]]*outdated[[:space:]]*[|│┃]' <<<"$table")
 [ -n "$rows" ] || exit 0
 
 echo "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):"
