@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # SessionStart hook: reports the apm.yml dependencies that have a newer version than the one recorded.
 # It only reports: apm.yml, apm.lock.yaml and the installation are not changed, apm install is not run.
-# Plain stdout of a SessionStart hook goes only into the agent's context, and the person does not see it.
-# In Claude Code (CLAUDE_PROJECT_DIR is set) emit prints JSON: systemMessage is shown to the person,
-# additionalContext goes to the agent. Elsewhere, or without jq, it prints plain text.
+# apm outdated goes to the network and takes seconds, and a synchronous SessionStart hook blocks the start
+# of the session, so outdated-deps.json runs the hook with "async": true.
+# Claude Code gives the output of an async hook only to the agent, on the next turn, and does not show it
+# to the person: the message asks the agent to pass it on. In Claude Code (CLAUDE_PROJECT_DIR is set)
+# emit prints JSON with additionalContext; elsewhere, or without jq, it prints plain text.
 
 emit() {
   if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && command -v jq >/dev/null 2>&1; then
-    jq -n --arg message "$1" \
-      '{systemMessage: $message, hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $message}}'
+    jq -n --arg message "$1
+Start your first reply to the person with this message: the person does not see it." \
+      '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $message}}'
   else
     printf '%s\n' "$1"
   fi

@@ -2,8 +2,9 @@
   "hooks": {
     "SessionStart": [
       {
+        "matcher": "startup|clear",
         "hooks": [
-          {"type": "command", "command": "./outdated-deps.sh"}
+          {"type": "command", "command": "./outdated-deps.sh", "async": true}
         ]
       }
     ]
