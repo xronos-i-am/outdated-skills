@@ -4,9 +4,16 @@
 
 ## Установка
 
-```bash
-make install
+Глобально пакет не ставится: хук подключается зависимостью в `apm.yml` проекта, который он проверяет:
+
+```yaml
+dependencies:
+  apm:
+    - git: xronos-i-am/outdated-skills
+      ref: v1.0.0
 ```
+
+В репозитории скилла его приносит skill-kit.
 
 ## Что сообщает хук
 
@@ -32,7 +39,7 @@ git config --global credential.https://<хост>.helper '!glab auth git-credent
 
 ## Разработка
 
-Обвязка разработки приходит из приватного пакета [skill-kit](https://github.com/xronos-i-am/skill-kit): без доступа к нему `make setup` не пройдёт, а `make install` пройдёт.
+Обвязка разработки приходит из приватного пакета [skill-kit](https://github.com/xronos-i-am/skill-kit): без доступа к нему `make setup` не пройдёт.
 
 | Команда | Когда |
 | --- | --- |
