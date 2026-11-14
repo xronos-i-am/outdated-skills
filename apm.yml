@@ -1,5 +1,5 @@
 name: outdated-skills
-version: 1.0.5
+version: 1.0.6
 description: "Session-start hook: tells the agent about outdated dependencies in the project's apm.yml"
 author: Sergei Malykh
 type: hybrid
