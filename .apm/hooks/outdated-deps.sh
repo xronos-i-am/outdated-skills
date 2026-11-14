@@ -1,10 +1,21 @@
 #!/usr/bin/env bash
 # SessionStart hook: reports the apm.yml dependencies that have a newer version than the one recorded.
 # It only reports: apm.yml, apm.lock.yaml and the installation are not changed, apm install is not run.
-# Everything the script writes to stdout goes into the session context.
+# Plain stdout of a SessionStart hook goes only into the agent's context, and the person does not see it.
+# In Claude Code (CLAUDE_PROJECT_DIR is set) emit prints JSON: systemMessage is shown to the person,
+# additionalContext goes to the agent. Elsewhere, or without jq, it prints plain text.
+
+emit() {
+  if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && command -v jq >/dev/null 2>&1; then
+    jq -n --arg message "$1" \
+      '{systemMessage: $message, hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $message}}'
+  else
+    printf '%s\n' "$1"
+  fi
+}
 
 skip() {
-  echo "outdated-skills: dependency check not done — $1"
+  emit "outdated-skills: dependency check not done — $1"
   exit 0
 }
 
@@ -22,5 +33,5 @@ table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated failed: $(he
 rows=$(grep -E '[|│┃][[:space:]]*outdated[[:space:]]*[|│┃]' <<<"$table")
 [ -n "$rows" ] || exit 0
 
-echo "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):"
-echo "$rows"
+emit "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):
+$rows"
