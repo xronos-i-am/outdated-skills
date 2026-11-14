@@ -4,21 +4,28 @@
 # apm outdated goes to the network and takes seconds, and a synchronous SessionStart hook blocks the start
 # of the session, so outdated-deps.json runs the hook with "async": true.
 # Claude Code gives the output of an async hook only to the agent, on the next turn, and does not show it
-# to the person: the message asks the agent to pass it on. In Claude Code (CLAUDE_PROJECT_DIR is set)
-# emit prints JSON with additionalContext; elsewhere, or without jq, it prints plain text.
+# to the person: the agent is told to start its first reply with a ready-made text, verbatim.
+# emit <plain text> [<text for the agent>]: in Claude Code (CLAUDE_PROJECT_DIR is set) it prints JSON
+# with additionalContext; elsewhere, or without jq, it prints the plain text.
 
 emit() {
   if [ -n "${CLAUDE_PROJECT_DIR:-}" ] && command -v jq >/dev/null 2>&1; then
-    jq -n --arg message "$1
-Start your first reply to the person with this message: the person does not see it." \
+    jq -n --arg message "${2:-$1}" \
       '{hookSpecificOutput: {hookEventName: "SessionStart", additionalContext: $message}}'
   else
     printf '%s\n' "$1"
   fi
 }
 
+# for_agent <text for the person> [<apm outdated rows>]
+for_agent() {
+  printf '%s\n\n%s\n' "Start your first reply with the text below, verbatim, before anything else: the person does not see this message." "$1"
+  [ -z "${2:-}" ] || printf '\nThe apm outdated rows:\n%s\n' "$2"
+}
+
 skip() {
-  emit "outdated-skills: dependency check not done — $1"
+  local notice="⚠ outdated-skills: dependency check not done — $1"
+  emit "$notice" "$(for_agent "$notice")"
   exit 0
 }
 
@@ -36,5 +43,9 @@ table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated failed: $(he
 rows=$(grep -E '[|│┃][[:space:]]*outdated[[:space:]]*[|│┃]' <<<"$table")
 [ -n "$rows" ] || exit 0
 
+# Table row "| name | current | latest | outdated | source |" -> "  name: current → latest"
+notice="⚠ outdated-skills: newer versions are available
+$(awk -F'|' '{ for (i = 2; i <= 4; i++) gsub(/^ +| +$/, "", $i); printf "  %s: %s → %s\n", $2, $3, $4 }' <<<"$rows")"
+
 emit "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):
-$rows"
+$rows" "$(for_agent "$notice" "$rows")"
