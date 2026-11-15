@@ -29,23 +29,44 @@ skip() {
   exit 0
 }
 
-[ -f apm.yml ] || exit 0
-[ -f apm.lock.yaml ] || skip "no apm.lock.yaml, and apm outdated compares versions against it."
-command -v apm >/dev/null 2>&1 || skip "apm is not in PATH."
+check_out=$("$(dirname "$0")/check-outdated.sh" --format tsv) || skip "check-outdated.sh failed."
 
-# COLUMNS=250: without it apm truncates names in the table to the terminal width.
-# stderr goes to a separate file: its lines must not end up in the table parsing
-errors=$(mktemp) || skip "could not create a temporary file."
-trap 'rm -f "$errors"' EXIT
-table=$(COLUMNS=250 apm outdated 2>"$errors") || skip "apm outdated failed: $(head -n 5 "$errors")"
+first_line=${check_out%%$'\n'*}
+IFS=$'\t' read -r status code reason <<<"$first_line"
 
-# The status is a table cell that is exactly "outdated"; other columns, such as Source, may follow it
-rows=$(grep -E '[|│┃][[:space:]]*outdated[[:space:]]*[|│┃]' <<<"$table")
+case "$status" in
+  up_to_date)
+    exit 0
+    ;;
+  skipped)
+    [ "$code" = "no_apm_yml" ] && exit 0
+    skip "$reason"
+    ;;
+  outdated)
+    ;;
+  *)
+    skip "unexpected output from check-outdated.sh."
+    ;;
+esac
+
+rows=""
+notice_lines=""
+while IFS=$'\t' read -r _ name current latest source; do
+  [ -n "$name" ] || continue
+  if [ -n "$source" ]; then
+    row=$(printf '| %s | %s | %s | outdated | %s |' "$name" "$current" "$latest" "$source")
+  else
+    row=$(printf '| %s | %s | %s | outdated |' "$name" "$current" "$latest")
+  fi
+  notice_line=$(printf '  %s: %s → %s' "$name" "$current" "$latest")
+  rows="${rows:+$rows$'\n'}$row"
+  notice_lines="${notice_lines:+$notice_lines$'\n'}$notice_line"
+done <<<"$check_out"
+
 [ -n "$rows" ] || exit 0
 
-# Table row "| name | current | latest | outdated | source |" -> "  name: current → latest"
 notice="❗ outdated-skills: newer versions are available
-$(awk -F'|' '{ for (i = 2; i <= 4; i++) gsub(/^ +| +$/, "", $i); printf "  %s: %s → %s\n", $2, $3, $4 }' <<<"$rows")"
+$notice_lines"
 
 emit "outdated-skills: apm.yml dependencies have a newer version than the one recorded (apm outdated):
 $rows" "$(for_agent "$notice" "$rows")"
