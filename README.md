@@ -31,3 +31,7 @@ The `SessionStart` hook runs `COLUMNS=250 apm outdated` in the session directory
 glab auth login --hostname <host>
 git config --global credential.https://<host>.helper '!glab auth git-credential'
 ```
+
+## License
+
+[MIT](LICENSE)

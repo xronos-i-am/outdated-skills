@@ -29,3 +29,7 @@ dependencies:
 glab auth login --hostname <хост>
 git config --global credential.https://<хост>.helper '!glab auth git-credential'
 ```
+
+## Лицензия
+
+[MIT](LICENSE)
